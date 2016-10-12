@@ -1,0 +1,2173 @@
+SQL> SET ECHO ON;
+SQL> /*
+SQL> CIS 353 - Database Design Project - Team 7
+SQL> <Frank Derry Wanye>
+SQL> <Ron Patrick>
+SQL> <Jordan Zomerlei>
+SQL> <Kevin Bush>
+SQL> */
+SQL> --
+SQL> drop table Genres cascade constraints;
+
+Table dropped.
+
+SQL> drop table Tracks cascade constraints;
+
+Table dropped.
+
+SQL> drop table Appears_In cascade constraints;
+
+Table dropped.
+
+SQL> drop table Artists cascade constraints;
+
+Table dropped.
+
+SQL> drop table Awards cascade constraints;
+
+Table dropped.
+
+SQL> drop table Albums cascade constraints;
+
+Table dropped.
+
+SQL> drop table CustomerOrders cascade constraints;
+
+Table dropped.
+
+SQL> drop table Purchasing cascade constraints;
+
+Table dropped.
+
+SQL> drop table ShippingDetails cascade constraints;
+
+Table dropped.
+
+SQL> drop table Customer cascade constraints;
+
+Table dropped.
+
+SQL> --
+SQL> CREATE TABLE Customer
+  2  (
+  3  CustomerID INTEGER,
+  4  LastName VARCHAR2(9) NOT NULL,
+  5  FirstName VARCHAR2(8) NOT NULL,
+  6  Email VARCHAR2(27),
+  7  Password VARCHAR2(32),
+  8  CONSTRAINT CustomerPrimeKey PRIMARY KEY (CustomerID),
+  9  CONSTRAINT UniqueEmail UNIQUE (Email)
+ 10  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE ShippingDetails
+  2  (
+  3  ShippingID INTEGER,
+  4  CustomerID INTEGER,
+  5  Street VARCHAR2(22) NOT NULL,
+  6  City VARCHAR2(17),
+  7  State CHAR(2) NOT NULL,
+  8  Zip CHAR(6) NOT NULL,
+  9  CONSTRAINT ShipDetailsPrimeKey PRIMARY KEY (ShippingID),
+ 10  CONSTRAINT ShipCustRelation FOREIGN KEY (CustomerID)
+ 11  		     REFERENCES Customer (CustomerID)
+ 12  		     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+ 13  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE CustomerOrders
+  2  (
+  3  OrderID INTEGER,
+  4  DateOrdered DATE NOT NULL,
+  5  CustomerID INTEGER,
+  6  Promocode INTEGER,
+  7  OrderStatus CHAR(16) NOT NULL,
+  8  CONSTRAINT OrdersPrimeKey PRIMARY KEY (OrderID),
+  9  CONSTRAINT OrdersCustRelation FOREIGN KEY (CustomerID)
+ 10  		     REFERENCES Customer (CustomerID)
+ 11  		     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+ 12  CONSTRAINT StatusCheck CHECK (OrderStatus IN ('Delivered','Shipped','Being Processed','Pending Approval'))
+ 13  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE Purchasing
+  2  (
+  3  AlbumID INTEGER NOT NULL,
+  4  OrderID INTEGER NOT NULL,
+  5  Quantity INTEGER NOT NULL,
+  6  CONSTRAINT PurchPrimeKey PRIMARY KEY(OrderID,AlbumID),
+  7  CONSTRAINT PurchForeignKey FOREIGN KEY(OrderID)
+  8  		     REFERENCES CustomerOrders(OrderID)
+  9  		     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+ 10  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE Albums
+  2  (
+  3  AlbumID INTEGER NOT NULL,
+  4  AlbumTitle VARCHAR2(45),
+  5  RecordLabel VARCHAR2(27),
+  6  QuantityOnHand INTEGER NOT NULL,
+  7  ReleaseYear INTEGER NOT NULL,
+  8  Price NUMBER(8,2) NOT NULL,
+  9  CONSTRAINT AlbumsPrimeKey PRIMARY KEY(AlbumID),
+ 10  CONSTRAINT Albums_stock CHECK (QuantityOnHand > -1 AND QuantityOnHand < 1001),
+ 11  CONSTRAINT Albums_price CHECK (NOT (ReleaseYear < 2000 AND Price > 10.00))
+ 12  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE Artists
+  2  (
+  3  ArtistID INTEGER,
+  4  ArtistName VARCHAR2(16) NOT NULL,
+  5  Nationality VARCHAR2(3),
+  6  CONSTRAINT ArtistPrimeKey PRIMARY KEY(ArtistID)
+  7  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE Appears_In
+  2  (
+  3  AlbumID INTEGER,
+  4  ArtistID INTEGER,
+  5  Role VARCHAR2(44),
+  6  CONSTRAINT AppearsInPrimeKey PRIMARY KEY(ArtistID,AlbumID)
+  7  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE Tracks
+  2  (
+  3  TNum INTEGER NOT NULL,
+  4  AlbumID INTEGER NOT NULL,
+  5  Duration_Seconds INTEGER NOT NULL,
+  6  Track_Name VARCHAR2(50),
+  7  CONSTRAINT TrackPrimeKey PRIMARY KEY(AlbumID,TNum),
+  8  CONSTRAINT TrackDurCheck CHECK (Duration_Seconds > 0),
+  9  CONSTRAINT TrackForeignKey FOREIGN KEY(AlbumID)
+ 10  		     REFERENCES Albums(AlbumID)
+ 11  		     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+ 12  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE Genres
+  2  (
+  3  AlbumID INTEGER NOT NULL,
+  4  Genre VARCHAR2(11),
+  5  CONSTRAINT GenresPrimeKey PRIMARY KEY(AlbumID,Genre),
+  6  CONSTRAINT GenresForeignKey FOREIGN KEY(AlbumID)
+  7  		     REFERENCES Albums(AlbumID)
+  8  		     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+  9  );
+
+Table created.
+
+SQL> --
+SQL> CREATE TABLE Awards
+  2  (
+  3  ArtistID INTEGER,
+  4  Award VARCHAR2(28),
+  5  CONSTRAINT AwardsPrimeKey PRIMARY KEY(ArtistID,Award),
+  6  CONSTRAINT AwardsForeignKey FOREIGN KEY(ArtistID)
+  7  		     REFERENCES Artists(ArtistID)
+  8  		     ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+  9  );
+
+Table created.
+
+SQL> --
+SQL> SET FEEDBACK OFF;
+SQL> INSERT INTO Awards values(984, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(981, 'Henson Award for Music');
+SQL> INSERT INTO Awards values(989, 'Case Sensitive Music Award');
+SQL> INSERT INTO Awards values(979, 'Richardson Death Metal Award');
+SQL> INSERT INTO Awards values(991, 'Case Sensitive Music Award');
+SQL> INSERT INTO Awards values(996, 'Henson Award for Music');
+SQL> INSERT INTO Awards values(983, 'Kaufman Award for Loud Music');
+SQL> INSERT INTO Awards values(979, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(996, 'Mcfarland Music Award');
+SQL> INSERT INTO Awards values(986, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(988, 'Richardson Death Metal Award');
+SQL> INSERT INTO Awards values(978, 'Mcfarland Music Award');
+SQL> INSERT INTO Awards values(998, 'Stanton Anti-Grammy Award');
+SQL> INSERT INTO Awards values(990, 'Henson Award for Music');
+SQL> INSERT INTO Awards values(978, 'Stanton Anti-Grammy Award');
+SQL> INSERT INTO Awards values(997, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(987, 'Mcfarland Music Award');
+SQL> INSERT INTO Awards values(994, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(993, 'Case Sensitive Music Award');
+SQL> INSERT INTO Awards values(994, 'Mendoza Latin Music Award');
+SQL> INSERT INTO Awards values(982, 'Stanton Anti-Grammy Award');
+SQL> INSERT INTO Awards values(978, 'Mendoza Latin Music Award');
+SQL> INSERT INTO Awards values(997, 'Case Sensitive Music Award');
+SQL> INSERT INTO Awards values(980, 'Kaufman Award for Loud Music');
+SQL> INSERT INTO Awards values(996, 'Richardson Death Metal Award');
+SQL> INSERT INTO Awards values(991, 'Kaufman Award for Loud Music');
+SQL> INSERT INTO Awards values(990, 'Mendoza Latin Music Award');
+SQL> INSERT INTO Awards values(980, 'Case Sensitive Music Award');
+SQL> INSERT INTO Awards values(993, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(983, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(994, 'Stanton Anti-Grammy Award');
+SQL> INSERT INTO Awards values(996, 'Mendoza Latin Music Award');
+SQL> INSERT INTO Awards values(988, 'Mendoza Latin Music Award');
+SQL> INSERT INTO Awards values(982, 'Bright Light Harmony Trophy');
+SQL> INSERT INTO Awards values(980, 'Richardson Death Metal Award');
+SQL> INSERT INTO Awards values(987, 'Mendoza Latin Music Award');
+SQL> INSERT INTO Awards values(988, 'Case Sensitive Music Award');
+SQL> INSERT INTO Awards values(989, 'Mcfarland Music Award');
+SQL> --
+SQL> INSERT INTO Customer values(110757, 'Bell', 'Tyler', 'TBell710@somewhere.com', 'dze9Nm8F2Sp');
+SQL> INSERT INTO Customer values(109931, 'Nguyen', 'Virginia', '', '');
+SQL> INSERT INTO Customer values(107901, 'Jenkins', 'Victoria', '', '');
+SQL> INSERT INTO Customer values(122103, 'Ortiz', 'Amanda', 'AOrtiz846@somewhere.com', 'FdkYR5xMId8Y');
+SQL> INSERT INTO Customer values(129157, 'Ross', 'Kimberly', 'KRoss581@somewhere.com', 'boTgGNwWCStDM');
+SQL> INSERT INTO Customer values(123925, 'Lee', 'Adam', 'ALee53@somewhere.com', '9LCC8Pe4A');
+SQL> INSERT INTO Customer values(105268, 'Adams', 'Frank', 'FAdams69@somewhere.com', 'fEvYaFq');
+SQL> INSERT INTO Customer values(121958, 'Green', 'Karen', 'KGreen949@somewhere.com', 'AfPcexPA');
+SQL> INSERT INTO Customer values(109019, 'Morales', 'Donna', 'DMorales913@somewhere.com', 'caNxC6Eq8MoovDHqGAd9');
+SQL> INSERT INTO Customer values(129206, 'Cruz', 'Eugene', 'ECruz940@somewhere.com', 'Fvdz78EQAK2GM7i73Y3');
+SQL> INSERT INTO Customer values(128714, 'Long', 'Nicole', 'NLong481@somewhere.com', 'eIOztmznsu06');
+SQL> INSERT INTO Customer values(132000, 'Diaz', 'Jack', '', '');
+SQL> INSERT INTO Customer values(116558, 'Bennett', 'Roy', 'RBennett460@somewhere.com', 'CSnSdiBSYf');
+SQL> INSERT INTO Customer values(103459, 'Green', 'Virginia', 'VGreen527@somewhere.com', '6ponGDpT6blh5qw');
+SQL> INSERT INTO Customer values(117932, 'Bell', 'Jonathan', 'JBell904@somewhere.com', 'NNQKQ7j3u9coLF8h6');
+SQL> INSERT INTO Customer values(131399, 'Diaz', 'Wayne', 'WDiaz318@somewhere.com', '9wJ6A4NxEB4DT7Y');
+SQL> INSERT INTO Customer values(119293, 'Watson', 'Robert', '', '');
+SQL> INSERT INTO Customer values(125668, 'Allen', 'Tyler', 'TAllen530@somewhere.com', 'rTxPzX8fLpI');
+SQL> INSERT INTO Customer values(112728, 'Perez', 'Howard', 'HPerez148@somewhere.com', 'v1PKKQ5UsYXWYqVTQ');
+SQL> INSERT INTO Customer values(130287, 'Rodriguez', 'Bruce', 'BRodriguez627@somewhere.com', 'nBJEeujl6mQIr3GT9C');
+SQL> INSERT INTO Customer values(105905, 'Gomez', 'Jennifer', 'JGomez646@somewhere.com', 'haOAq79bfYl9oLotNu');
+SQL> INSERT INTO Customer values(112929, 'Hill', 'Mark', '', '');
+SQL> INSERT INTO Customer values(109675, 'Campbell', 'Nathan', 'NCampbell858@somewhere.com', 'hQLyU5o8j');
+SQL> INSERT INTO Customer values(128088, 'James', 'Douglas', 'DJames687@somewhere.com', 'MyA0SdGlNI');
+SQL> INSERT INTO Customer values(114868, 'Wood', 'Judith', 'JWood793@somewhere.com', 'gq1ffGjuD');
+SQL> INSERT INTO Customer values(127818, 'Williams', 'Karen', 'KWilliams976@somewhere.com', '1QIg2U1fyJATV4e46wvw');
+SQL> INSERT INTO Customer values(119270, 'Robinson', 'Jacob', '', '');
+SQL> INSERT INTO Customer values(115719, 'Edwards', 'Janice', '', '');
+SQL> INSERT INTO Customer values(119658, 'Cruz', 'Sarah', '', '');
+SQL> INSERT INTO Customer values(129309, 'Parker', 'Ashley', 'AParker107@somewhere.com', 'WsDGrJK');
+SQL> INSERT INTO Customer values(124207, 'Smith', 'Kyle', 'KSmith296@somewhere.com', 'jkAYKft6id');
+SQL> INSERT INTO Customer values(117018, 'Jackson', 'Marie', 'MJackson65@somewhere.com', 'CXBHicKipwsI');
+SQL> INSERT INTO Customer values(111946, 'Barnes', 'Terry', 'TBarnes22@somewhere.com', '3xCXzjb72fYwXnwOWMku');
+SQL> INSERT INTO Customer values(106555, 'Cox', 'Jack', 'JCox811@somewhere.com', 'w3gL8Rb');
+SQL> INSERT INTO Customer values(119068, 'Murphy', 'Laura', '', '');
+SQL> INSERT INTO Customer values(112385, 'Collins', 'Laura', '', '');
+SQL> INSERT INTO Customer values(113664, 'Lewis', 'Mildred', 'MLewis522@somewhere.com', 'QpKjDLYkGOfdez');
+SQL> INSERT INTO Customer values(120321, 'James', 'Kenneth', 'KJames643@somewhere.com', 'vBB9VQE66UsPEH');
+SQL> INSERT INTO Customer values(116325, 'Rivera', 'Diana', '', '');
+SQL> INSERT INTO Customer values(110386, 'Cook', 'Vincent', '', '');
+SQL> --
+SQL> --
+SQL> INSERT INTO ShippingDetails values(110773, 110757, '2234 Cedar Street', 'Cape Coral', 'FL', '33904');
+SQL> INSERT INTO ShippingDetails values(111849, 122103, '210 Jackson Street', 'North Olmsted', 'OH', '44070');
+SQL> INSERT INTO ShippingDetails values(120388, 129157, '3835 Cherry Lane', 'Indian Trail', 'NC', '28079');
+SQL> INSERT INTO ShippingDetails values(101525, 123925, '6273 Fairway Drive', 'Hopewell Junction', 'NY', '12533');
+SQL> INSERT INTO ShippingDetails values(116556, 123925, '1489 River Street', 'Deerfield Beach', 'FL', '33442');
+SQL> INSERT INTO ShippingDetails values(102161, 105268, '8439 Pheasant Run', 'Evansville', 'IN', '47711');
+SQL> INSERT INTO ShippingDetails values(127919, 109019, '1519 Devonshire Drive', 'North Olmsted', 'OH', '44070');
+SQL> INSERT INTO ShippingDetails values(106667, 128714, '1405 Route 100', 'Palm Bay', 'FL', '32907');
+SQL> INSERT INTO ShippingDetails values(121699, 116558, '9909 Shady Lane', 'Manahawkin', 'NJ', '08050');
+SQL> INSERT INTO ShippingDetails values(113520, 103459, '3485 Linden Avenue', 'Raleigh', 'NC', '27603');
+SQL> INSERT INTO ShippingDetails values(105627, 117932, '6032 Hillside Drive', 'Ringgold', 'GA', '30736');
+SQL> INSERT INTO ShippingDetails values(104678, 131399, '2802 Orchard Avenue', 'Poughkeepsie', 'NY', '12601');
+SQL> INSERT INTO ShippingDetails values(125455, 125668, '201 Madison Avenue', 'Addison', 'IL', '60101');
+SQL> INSERT INTO ShippingDetails values(128572, 112728, '6045 Orchard Street', 'Seymour', 'IN', '47274');
+SQL> INSERT INTO ShippingDetails values(124313, 130287, '434 Elm Avenue', 'Holbrook', 'NY', '11741');
+SQL> INSERT INTO ShippingDetails values(113928, 105905, '8226 Canterbury Drive', 'Cumming', 'GA', '30040');
+SQL> INSERT INTO ShippingDetails values(106047, 109675, '6695 6th Avenue', 'Clayton', 'NC', '27520');
+SQL> INSERT INTO ShippingDetails values(100320, 128088, '6730 Andover Court', 'Nashua', 'NH', '03060');
+SQL> INSERT INTO ShippingDetails values(118896, 114868, '234 Adams Avenue', 'Cumming', 'GA', '30040');
+SQL> INSERT INTO ShippingDetails values(109882, 127818, '9961 Main Street North', 'Waterford', 'MI', '48329');
+SQL> INSERT INTO ShippingDetails values(127615, 129309, '3750 Park Drive', 'Smithtown', 'NY', '11787');
+SQL> INSERT INTO ShippingDetails values(126085, 124207, '4745 Virginia Street', 'Evansville', 'IN', '47711');
+SQL> INSERT INTO ShippingDetails values(117087, 117018, '1983 Harrison Avenue', 'Northbrook', 'IL', '60062');
+SQL> INSERT INTO ShippingDetails values(104840, 111946, '6639 Cherry Street', 'Flint', 'MI', '48504');
+SQL> INSERT INTO ShippingDetails values(131488, 106555, '583 Magnolia Drive', 'Hicksville', 'NY', '11801');
+SQL> INSERT INTO ShippingDetails values(123385, 113664, '5744 Poplar Street', 'Youngstown', 'OH', '44512');
+SQL> INSERT INTO ShippingDetails values(100522, 120321, '7942 Bayberry Drive', 'Jenison', 'MI', '49428');
+SQL> --
+SQL> --
+SQL> INSERT INTO CustomerOrders values(129843, '6-Nov-2001', 129157, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(107064, '10-Jul-2014', 122103, 9, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(103543, '19-Jun-2002', 128088, 15, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(122374, '25-Oct-2013', 112728, NULL, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(115439, '7-May-2002', 124207, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(127342, '21-Jul-2010', 124207, 8, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(119896, '26-Oct-2011', 124207, 3, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(123752, '21-Oct-2007', 109019, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(100208, '27-Jan-2013', 131399, 11, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(122279, '12-Jan-2011', 120321, NULL, 'Shipped');
+SQL> INSERT INTO CustomerOrders values(119593, '23-Jul-2004', 128088, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(101500, '27-Mar-2012', 105905, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(104311, '17-Jan-2013', 129309, 16, 'Shipped');
+SQL> INSERT INTO CustomerOrders values(103207, '6-May-2014', 114868, 16, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(125106, '21-Feb-2004', 124207, 7, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(117917, '4-Aug-2003', 111946, NULL, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(127493, '11-Jun-2003', 103459, 13, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(111836, '12-Jan-2010', 127818, NULL, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(113762, '12-Oct-2010', 111946, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(113004, '11-Oct-2007', 130287, NULL, 'Shipped');
+SQL> INSERT INTO CustomerOrders values(118517, '17-Feb-2008', 117932, 3, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(122789, '3-Nov-2009', 130287, 13, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(125705, '6-Sep-2008', 105268, NULL, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(114110, '2-Dec-2011', 106555, NULL, 'Shipped');
+SQL> INSERT INTO CustomerOrders values(125147, '4-Nov-2013', 109675, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(114660, '21-Mar-2005', 123925, 15, 'Shipped');
+SQL> INSERT INTO CustomerOrders values(115668, '10-Jul-2009', 117932, 9, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(109763, '10-Apr-2001', 125668, NULL, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(132124, '17-May-2010', 112728, NULL, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(124230, '27-Mar-2013', 128714, NULL, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(112777, '24-May-2008', 120321, 12, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(131449, '18-Jun-2006', 114868, NULL, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(126799, '10-May-2000', 124207, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(114898, '3-Aug-2007', 116558, 2, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(122116, '25-Oct-2011', 131399, 3, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(120401, '27-Jul-2012', 106555, NULL, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(129236, '16-Jun-2011', 128714, NULL, 'Delivered');
+SQL> INSERT INTO CustomerOrders values(129328, '3-Apr-2000', 116558, NULL, 'Pending Approval');
+SQL> INSERT INTO CustomerOrders values(102898, '25-Aug-2004', 109019, NULL, 'Being Processed');
+SQL> INSERT INTO CustomerOrders values(123167, '23-Aug-2002', 122103, 7, 'Pending Approval');
+SQL> --
+SQL> INSERT INTO Purchasing values(9,129843,14);
+SQL> INSERT INTO Purchasing values(1,107064,18);
+SQL> INSERT INTO Purchasing values(1,103543,1);
+SQL> INSERT INTO Purchasing values(8,122374,12);
+SQL> INSERT INTO Purchasing values(7,115439,12);
+SQL> INSERT INTO Purchasing values(4,127342,13);
+SQL> INSERT INTO Purchasing values(9,119896,7);
+SQL> INSERT INTO Purchasing values(9,123752,3);
+SQL> INSERT INTO Purchasing values(5,100208,18);
+SQL> INSERT INTO Purchasing values(3,122279,20);
+SQL> INSERT INTO Purchasing values(9,119593,1);
+SQL> INSERT INTO Purchasing values(10,101500,5);
+SQL> INSERT INTO Purchasing values(7,104311,1);
+SQL> INSERT INTO Purchasing values(8,103207,5);
+SQL> INSERT INTO Purchasing values(5,125106,3);
+SQL> INSERT INTO Purchasing values(7,117917,15);
+SQL> INSERT INTO Purchasing values(3,127493,7);
+SQL> INSERT INTO Purchasing values(10,111836,11);
+SQL> INSERT INTO Purchasing values(3,113762,4);
+SQL> INSERT INTO Purchasing values(7,113004,20);
+SQL> INSERT INTO Purchasing values(10,118517,3);
+SQL> INSERT INTO Purchasing values(8,122789,6);
+SQL> INSERT INTO Purchasing values(3,125705,5);
+SQL> INSERT INTO Purchasing values(8,114110,18);
+SQL> INSERT INTO Purchasing values(3,125147,9);
+SQL> INSERT INTO Purchasing values(1,114660,11);
+SQL> INSERT INTO Purchasing values(9,115668,13);
+SQL> INSERT INTO Purchasing values(4,109763,14);
+SQL> INSERT INTO Purchasing values(4,132124,19);
+SQL> INSERT INTO Purchasing values(2,124230,9);
+SQL> INSERT INTO Purchasing values(10,112777,3);
+SQL> INSERT INTO Purchasing values(3,131449,19);
+SQL> INSERT INTO Purchasing values(9,126799,18);
+SQL> INSERT INTO Purchasing values(7,114898,11);
+SQL> INSERT INTO Purchasing values(8,122116,2);
+SQL> INSERT INTO Purchasing values(4,120401,19);
+SQL> INSERT INTO Purchasing values(4,129236,1);
+SQL> INSERT INTO Purchasing values(10,129328,4);
+SQL> INSERT INTO Purchasing values(7,102898,20);
+SQL> INSERT INTO Purchasing values(9,123167,11);
+SQL> INSERT INTO Purchasing values(7,109763,14);
+SQL> INSERT INTO Purchasing values(2,132124,19);
+SQL> INSERT INTO Purchasing values(7,124230,9);
+SQL> INSERT INTO Purchasing values(1,112777,3);
+SQL> INSERT INTO Purchasing values(5,131449,19);
+SQL> INSERT INTO Purchasing values(7,126799,18);
+SQL> INSERT INTO Purchasing values(4,114898,11);
+SQL> INSERT INTO Purchasing values(3,122116,2);
+SQL> INSERT INTO Purchasing values(2,120401,19);
+SQL> INSERT INTO Purchasing values(1,129236,1);
+SQL> INSERT INTO Purchasing values(1,129328,4);
+SQL> INSERT INTO Purchasing values(6,102898,20);
+SQL> INSERT INTO Purchasing values(7,123167,11);
+SQL> --
+SQL> INSERT INTO Albums VALUES(1 ,'Quantum Jump','Apple Records', 397, 1976 , 2.11);
+SQL> --
+SQL> INSERT INTO Artists VALUES (999,'John G. Perry','USA');
+SQL> INSERT INTO Artists VALUES (998,'Quantum Jump','USA');
+SQL> INSERT INTO Artists VALUES (997,'Trevor Smith','USA');
+SQL> INSERT INTO Artists VALUES (996,'Trevor Morais','USA');
+SQL> INSERT INTO Artists VALUES (995,'Rupert Hine','USA');
+SQL> --
+SQL> INSERT INTO Appears_In VALUES(1,999,'Recording Artist, Vocals, Bass Guitar');
+SQL> INSERT INTO Appears_In VALUES(1,998,'Composer');
+SQL> INSERT INTO Appears_In VALUES(1,997,'Artwork');
+SQL> INSERT INTO Appears_In VALUES(1,996,'Drums/Percussion');
+SQL> INSERT INTO Appears_In VALUES(1,995,'Producer');
+SQL> --
+SQL> INSERT INTO Genres VALUES(1,'Electronic');
+SQL> INSERT INTO Genres VALUES(1,'Jazz');
+SQL> INSERT INTO Genres VALUES(1,'Rock');
+SQL> INSERT INTO Genres VALUES(1,'Funk / Soul');
+SQL> --
+SQL> INSERT INTO Tracks VALUES(1,1,525,'Captain Boogaloo');
+SQL> INSERT INTO Tracks VALUES(2,1,586,'Over Rio');
+SQL> INSERT INTO Tracks VALUES(3,1,122,'The Lone Ranger');
+SQL> INSERT INTO Tracks VALUES(4,1,563,'No American Starship (Looking For The Next World)');
+SQL> INSERT INTO Tracks VALUES(5,1,505,'Alta Loma Road');
+SQL> INSERT INTO Tracks VALUES(6,1,581,'Cocabana Havana');
+SQL> INSERT INTO Tracks VALUES(7,1,111,'Constant Forest');
+SQL> INSERT INTO Tracks VALUES(8,1,69,'Something At The Bottom Of The Sea');
+SQL> INSERT INTO Tracks VALUES(9,1,551,'Stepping Stones');
+SQL> INSERT INTO Tracks VALUES(10,1,288,'The Roving Finger');
+SQL> INSERT INTO Tracks VALUES(11,1,151,'Stepping Rocks');
+SQL> --
+SQL> INSERT INTO Albums VALUES(2,'Enigmatic Ocean','Atlantic',271,1977,6.84);
+SQL> --
+SQL> INSERT INTO Artists VALUES(994,'Jean-Luc Ponty','USA');
+SQL> INSERT INTO Artists VALUES(993,'Allan Zavod','USA');
+SQL> INSERT INTO Artists VALUES(992,'Steve Smith','USA');
+SQL> INSERT INTO Artists VALUES(991,'Ralphe Armstrong','USA');
+SQL> --
+SQL> INSERT INTO Appears_In VALUES(2,994,'Conductor, Composer, Recording Artist, Bells');
+SQL> INSERT INTO Appears_In VALUES(2,993,'Clavinet');
+SQL> INSERT INTO Appears_In VALUES(2,992,'Drums');
+SQL> INSERT INTO Appears_In VALUES(2,991,'Electric Bass');
+SQL> --
+SQL> INSERT INTO Genres VALUES(2,'Electronic');
+SQL> INSERT INTO Genres VALUES(2,'Jazz');
+SQL> INSERT INTO Genres VALUES(2,'Rock');
+SQL> --
+SQL> INSERT INTO Tracks VALUES(1,2,292,'Overture');
+SQL> INSERT INTO Tracks VALUES(2,2,240,'The Trans-Love Express');
+SQL> INSERT INTO Tracks VALUES(3,2,64,'Mirage');
+SQL> INSERT INTO Tracks VALUES(4,2,455,'Enigmatic Ocean (Part I)');
+SQL> INSERT INTO Tracks VALUES(5,2,518,'Enigmatic Ocean (Part II)');
+SQL> INSERT INTO Tracks VALUES(6,2,47,'Enigmatic Ocean (Part III)');
+SQL> INSERT INTO Tracks VALUES(7,2,109,'Enigmatic Ocean (Part IV)');
+SQL> INSERT INTO Tracks VALUES(8,2,614,'Nostalgic Lady');
+SQL> INSERT INTO Tracks VALUES(9,2,595,'The Struggle Of The Turtle To The Sea (Part I)');
+SQL> INSERT INTO Tracks VALUES(10,2,320,'The Struggle Of The Turtle To The Sea (Part II)');
+SQL> INSERT INTO Tracks VALUES(11,2,282,'The Struggle Of The Turtle To The Sea (Part III)');
+SQL> --
+SQL> INSERT INTO Artists VALUES(990,'Indochine','USA');
+SQL> --
+SQL> INSERT INTO Albums VALUES(3,'Paradize','Indochine Records',100,2016,6.93);
+SQL> --
+SQL> INSERT INTO Appears_In VALUES(3,990,'Recording Artist');
+SQL> --
+SQL> INSERT INTO Genres VALUES(3,'Rock');
+SQL> INSERT INTO Genres VALUES(3,'Pop');
+SQL> --
+SQL> INSERT INTO Tracks VALUES(1,3,534,'Paradize');
+SQL> INSERT INTO Tracks VALUES(2,3,439,'Electrastar');
+SQL> INSERT INTO Tracks VALUES(3,3,534,'Punker');
+SQL> INSERT INTO Tracks VALUES(4,3,277,'Mao boy');
+SQL> INSERT INTO Tracks VALUES(5,3,411,'J`ai demandÃ© Ã  la lune ');
+SQL> INSERT INTO Tracks VALUES(6,3,95,'Dunkerque');
+SQL> INSERT INTO Tracks VALUES(7,3,126,'Like a monster');
+SQL> INSERT INTO Tracks VALUES(8,3,415,'Le grand secret');
+SQL> INSERT INTO Tracks VALUES(9,3,240,'La nuit des fÃ©es');
+SQL> INSERT INTO Tracks VALUES(10,3,393,'Marilyn');
+SQL> INSERT INTO Tracks VALUES(11,3,369,'La manoir');
+SQL> INSERT INTO Tracks VALUES(12,3,581,'Popstitute');
+SQL> INSERT INTO Tracks VALUES(13,3,142,'Dark');
+SQL> INSERT INTO Tracks VALUES(14,3,583,'Comateen 1 ');
+SQL> INSERT INTO Tracks VALUES(15,3,202,'Un singe en hiver');
+SQL> --
+SQL> INSERT INTO Artists VALUES(989,'B.B. King','USA');
+SQL> --
+SQL> INSERT INTO Albums VALUES(4,'B.B. King Brought to You By Rockport','Universal Music Enterprises',1,1998,2.09);
+SQL> --
+SQL> INSERT INTO Appears_In VALUES(4,989,'Recording Artist');
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Genres VALUES(4,'Blues');
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Tracks VALUES(1,4,587,'(I Love You) For Sentimental Reasons');
+SQL> INSERT INTO Tracks VALUES(2,4,547,'The Thrill Is Gone');
+SQL> INSERT INTO Tracks VALUES(3,4,551,'I`ll Survive');
+SQL> --
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Artists VALUES(988,'Elton John','USA');
+SQL> INSERT INTO Artists VALUES(987,'Dylan Hart','USA');
+SQL> INSERT INTO Artists VALUES(986,'Nigel Olsson','USA');
+SQL> INSERT INTO Artists VALUES(985,'Kim Bullard','USA');
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Albums VALUES(5,'Wonderful Crazy Night','Island Records',11,2016,10.35);
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Appears_In VALUES(5,986,'Harmony Vocals, Drums');
+SQL> INSERT INTO Appears_In VALUES(5,987,'French Horn');
+SQL> INSERT INTO Appears_In VALUES(5,985,'Keyboards');
+SQL> INSERT INTO Appears_In VALUES(5,988,'Recording Artist, Lead Vocals');
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Genres VALUES(5,'Rock');
+SQL> INSERT INTO Genres VALUES(5,'Pop');
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Tracks VALUES(1,5,52,'Wonderful Crazy Night');
+SQL> INSERT INTO Tracks VALUES(2,5,216,'In The Name Of You');
+SQL> INSERT INTO Tracks VALUES(3,5,148,'Claw Hammer');
+SQL> INSERT INTO Tracks VALUES(4,5,151,'Blue Wonderful');
+SQL> INSERT INTO Tracks VALUES(5,5,213,'I`ve Got 2 Wings');
+SQL> INSERT INTO Tracks VALUES(6,5,323,'A Good Heart');
+SQL> INSERT INTO Tracks VALUES(7,5,195,'Looking Up');
+SQL> INSERT INTO Tracks VALUES(8,5,400,'Guilty Pleasure');
+SQL> INSERT INTO Tracks VALUES(9,5,546,'Tambourine');
+SQL> INSERT INTO Tracks VALUES(10,5,309,'The Open Chord');
+SQL> INSERT INTO Tracks VALUES(11,5,225,'Free And Easy');
+SQL> INSERT INTO Tracks VALUES(12,5,321,'England And America');
+SQL> INSERT INTO Tracks VALUES(13,5,149,'Looking Up (Live)');
+SQL> INSERT INTO Tracks VALUES(14,5,362,'Wonderful Crazy Night (Live)');
+SQL> --
+SQL> INSERT INTO Artists VALUES(984,'Seges Findere','USA');
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Albums VALUES(6,'Mortal Grinder','Behold Barbarity',911,2016,8.65);
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Appears_In VALUES(6,984,'Lead Vocals, Recording Artist');
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Genres VALUES(6,'Rock');
+SQL> -----------------------------------------------------------------------------
+SQL> INSERT INTO Tracks VALUES(1,6,251,'Mortal Grinder');
+SQL> INSERT INTO Tracks VALUES(2,6,86,'Volunteers Of Victory');
+SQL> INSERT INTO Tracks VALUES(3,6,460,'The Multicunts Misery');
+SQL> INSERT INTO Tracks VALUES(4,6,199,'Terrornoise');
+SQL> INSERT INTO Tracks VALUES(5,6,523,'Total Warsphere');
+SQL> INSERT INTO Tracks VALUES(6,6,462,'Disciples Of The Black Sun');
+SQL> INSERT INTO Tracks VALUES(7,6,442,'Hatestrike');
+SQL> INSERT INTO Tracks VALUES(8,6,234,'Intolerance Is Right');
+SQL> INSERT INTO Tracks VALUES(9,6,217,'Crush, Kill and Destroy The Antifa Trannies');
+SQL> INSERT INTO Tracks VALUES(10,6,54,'Scoriam Mortis');
+SQL> INSERT INTO Tracks VALUES(11,6,560,'Hollyjude Shit');
+SQL> INSERT INTO Tracks VALUES(12,6,434,'Indominus');
+SQL> INSERT INTO Tracks VALUES(13,6,374,'Unrivalled');
+SQL> INSERT INTO Tracks VALUES(14,6,260,'Guts For The Wardemons');
+SQL> INSERT INTO Tracks VALUES(15,6,68,'Fire On Diaspora Pest');
+SQL> INSERT INTO Tracks VALUES(16,6,225,'Strategema Letalis');
+SQL> INSERT INTO Tracks VALUES(17,6,497,'Aggressive Reaction');
+SQL> INSERT INTO Tracks VALUES(18,6,128,'No Abolition');
+SQL> INSERT INTO Tracks VALUES(19,6,499,'Repulsive Trash');
+SQL> INSERT INTO Tracks VALUES(20,6,197,'Coprophagic Wiesentales');
+SQL> INSERT INTO Tracks VALUES(21,6,434,'Protocol of Extinction');
+SQL> INSERT INTO Tracks VALUES(22,6,610,'VÃ´mito AtÃ´mico');
+SQL> --
+SQL> INSERT INTO Artists VALUES(983,'Fleetwood Mac','USA');
+SQL> --
+SQL> INSERT INTO Albums VALUES(7,'Live At The Boston Tea Party Part Two','Snapper Music Inc.',97,1998,3.62);
+SQL> --
+SQL> INSERT INTO Appears_In VALUES(7,983,'Lead Vocals, Recording Artist');
+SQL> --
+SQL> INSERT INTO Genres VALUES(7,'Rock');
+SQL> --
+SQL> INSERT INTO Tracks VALUES(1,7,142,'World In Harmony');
+SQL> INSERT INTO Tracks VALUES(2,7,423,'Oh Well');
+SQL> INSERT INTO Tracks VALUES(3,7,338,'Rattlesnake Shake');
+SQL> INSERT INTO Tracks VALUES(4,7,73,'Stranger Blues');
+SQL> INSERT INTO Tracks VALUES(5,7,554,'Red Hot Mama');
+SQL> INSERT INTO Tracks VALUES(6,7,317,'Teenage Darling');
+SQL> INSERT INTO Tracks VALUES(7,7,382,'Keep A-Knocking');
+SQL> INSERT INTO Tracks VALUES(8,7,237,'Jenny Jenny');
+SQL> INSERT INTO Tracks VALUES(9,7,268,'Encore');
+SQL> --
+SQL> INSERT INTO Artists VALUES(982,'Buckner','USA');
+SQL> INSERT INTO Artists VALUES(981,'Sabine Kaufmann','USA');
+SQL> --
+SQL> INSERT INTO Albums VALUES(8,'Sinfonieorchester Des Norddeutschen Rundfunks','RCA Victor Red Seal',463,1989,3.81);
+SQL> --
+SQL> INSERT INTO Appears_In VALUES(8,982,'Composer, Recording Artist');
+SQL> INSERT INTO Appears_In VALUES(8,981,'Editor');
+SQL> --
+SQL> INSERT INTO Genres VALUES(8,'Classical');
+SQL> --
+SQL> INSERT INTO Tracks VALUES(1,8,290,'Sinfonie Nr. 6 A-Dur');
+SQL> INSERT INTO Tracks VALUES(2,8,260,'Majestoso');
+SQL> INSERT INTO Tracks VALUES(3,8,286,'Adagio. Sehr Feierlich');
+SQL> INSERT INTO Tracks VALUES(4,8,321,'Scherzo. Nicht Schnell. Trio');
+SQL> INSERT INTO Tracks VALUES(5,8,73,'Finale. Bewegt, Doch Nicht Zu Schnell');
+SQL> --
+SQL> INSERT INTO Artists VALUES (980,'The Beatles','UK');
+SQL> --
+SQL> INSERT INTO Albums VALUES(9,'Abbey Road','Apple Records',657,1969,9.98);
+SQL> --
+SQL> INSERT INTO Appears_In VALUES(9,980,'Recording Artist');
+SQL> --
+SQL> INSERT INTO Genres VALUES(9,'Rock');
+SQL> INSERT INTO Genres VALUES(9,'Pop');
+SQL> --
+SQL> INSERT INTO Tracks VALUES (1,9,260,'Come Together');
+SQL> INSERT INTO Tracks VALUES (2,9,183,'Something');
+SQL> INSERT INTO Tracks VALUES (3,9,207,'Maxwell`s Silver Hammer');
+SQL> INSERT INTO Tracks VALUES (4,9,206,'Oh! Darling');
+SQL> INSERT INTO Tracks VALUES (5,9,171,'Octopus`s Garden');
+SQL> INSERT INTO Tracks VALUES (6,9,467,'I Want You (She`s So Heavy)');
+SQL> INSERT INTO Tracks VALUES (7,9,185,'Here Comes The Sun');
+SQL> INSERT INTO Tracks VALUES (8,9,165,'Because');
+SQL> INSERT INTO Tracks VALUES (9,9,242,'You Never Give Me Your Money');
+SQL> INSERT INTO Tracks VALUES (10,9,146,'Sun King');
+SQL> INSERT INTO Tracks VALUES (11,9,66,'Mean Mr. Mustard');
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Artists VALUES(979,'Kwanza Unit','USA');
+SQL> INSERT INTO Artists VALUES(978,'Master Jay','USA');
+SQL> INSERT INTO Artists VALUES(977,'Rhymson','USA');
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Albums VALUES(10,'Kwanza Unit','Madunia Foundation',121,2000,3.24);
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Appears_In VALUES(10,979,'Lead Vocals, Recording Artist');
+SQL> INSERT INTO Appears_In VALUES(10,978,'Co-Producer');
+SQL> INSERT INTO Appears_In VALUES(10,977,'Producer');
+SQL> -----------------------------------------------------------------------------
+SQL> INSERT INTO Genres VALUES(10,'Hip Hop');
+SQL> ------------------------------------------------------------------------------
+SQL> INSERT INTO Tracks VALUES(1,10,305,'Intro');
+SQL> INSERT INTO Tracks VALUES(2,10,540,'Kwanzanianz');
+SQL> INSERT INTO Tracks VALUES(3,10,57,'Inahouse');
+SQL> INSERT INTO Tracks VALUES(4,10,247,'Interlude');
+SQL> INSERT INTO Tracks VALUES(5,10,446,'Beyond Belief');
+SQL> INSERT INTO Tracks VALUES(6,10,362,'Interlude');
+SQL> INSERT INTO Tracks VALUES(7,10,378,'Msafiri');
+SQL> INSERT INTO Tracks VALUES(8,10,611,'Friction');
+SQL> INSERT INTO Tracks VALUES(9,10,419,'Interlude');
+SQL> INSERT INTO Tracks VALUES(10,10,160,'Man To Man');
+SQL> INSERT INTO Tracks VALUES(11,10,419,'Check Navyoflow');
+SQL> INSERT INTO Tracks VALUES(12,10,436,'Interlude');
+SQL> INSERT INTO Tracks VALUES(13,10,81,'Beyond Belief (Remix)');
+SQL> INSERT INTO Tracks VALUES(14,10,208,'Acha');
+SQL> INSERT INTO Tracks VALUES(15,10,352,'Interlude');
+SQL> INSERT INTO Tracks VALUES(16,10,442,'Kamari');
+SQL> INSERT INTO Tracks VALUES(17,10,418,'Yippy Yapping');
+SQL> INSERT INTO Tracks VALUES(18,10,602,'Kivingine');
+SQL> INSERT INTO Tracks VALUES(19,10,359,'Interlude');
+SQL> INSERT INTO Tracks VALUES(20,10,525,'Nakuja');
+SQL> INSERT INTO Tracks VALUES(21,10,451,'Runtingz');
+SQL> INSERT INTO Tracks VALUES(22,10,618,'So Why');
+SQL> INSERT INTO Tracks VALUES(23,10,103,'Outtro');
+SQL> INSERT INTO Tracks VALUES(24,10,192,'Beyond Belief (Posse Remix)');
+SQL> SET FEEDBACK ON;
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> --
+SQL> -- Queries for database
+SQL> --
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from Customer Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM Customer;
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    110757 Bell      Tyler    TBell710@somewhere.com                            
+dze9Nm8F2Sp                                                                     
+                                                                                
+    109931 Nguyen    Virginia                                                   
+                                                                                
+                                                                                
+    107901 Jenkins   Victoria                                                   
+                                                                                
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    122103 Ortiz     Amanda   AOrtiz846@somewhere.com                           
+FdkYR5xMId8Y                                                                    
+                                                                                
+    129157 Ross      Kimberly KRoss581@somewhere.com                            
+boTgGNwWCStDM                                                                   
+                                                                                
+    123925 Lee       Adam     ALee53@somewhere.com                              
+9LCC8Pe4A                                                                       
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    105268 Adams     Frank    FAdams69@somewhere.com                            
+fEvYaFq                                                                         
+                                                                                
+    121958 Green     Karen    KGreen949@somewhere.com                           
+AfPcexPA                                                                        
+                                                                                
+    109019 Morales   Donna    DMorales913@somewhere.com                         
+caNxC6Eq8MoovDHqGAd9                                                            
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    129206 Cruz      Eugene   ECruz940@somewhere.com                            
+Fvdz78EQAK2GM7i73Y3                                                             
+                                                                                
+    128714 Long      Nicole   NLong481@somewhere.com                            
+eIOztmznsu06                                                                    
+                                                                                
+    132000 Diaz      Jack                                                       
+                                                                                
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    116558 Bennett   Roy      RBennett460@somewhere.com                         
+CSnSdiBSYf                                                                      
+                                                                                
+    103459 Green     Virginia VGreen527@somewhere.com                           
+6ponGDpT6blh5qw                                                                 
+                                                                                
+    117932 Bell      Jonathan JBell904@somewhere.com                            
+NNQKQ7j3u9coLF8h6                                                               
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    131399 Diaz      Wayne    WDiaz318@somewhere.com                            
+9wJ6A4NxEB4DT7Y                                                                 
+                                                                                
+    119293 Watson    Robert                                                     
+                                                                                
+                                                                                
+    125668 Allen     Tyler    TAllen530@somewhere.com                           
+rTxPzX8fLpI                                                                     
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    112728 Perez     Howard   HPerez148@somewhere.com                           
+v1PKKQ5UsYXWYqVTQ                                                               
+                                                                                
+    130287 Rodriguez Bruce    BRodriguez627@somewhere.com                       
+nBJEeujl6mQIr3GT9C                                                              
+                                                                                
+    105905 Gomez     Jennifer JGomez646@somewhere.com                           
+haOAq79bfYl9oLotNu                                                              
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    112929 Hill      Mark                                                       
+                                                                                
+                                                                                
+    109675 Campbell  Nathan   NCampbell858@somewhere.com                        
+hQLyU5o8j                                                                       
+                                                                                
+    128088 James     Douglas  DJames687@somewhere.com                           
+MyA0SdGlNI                                                                      
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    114868 Wood      Judith   JWood793@somewhere.com                            
+gq1ffGjuD                                                                       
+                                                                                
+    127818 Williams  Karen    KWilliams976@somewhere.com                        
+1QIg2U1fyJATV4e46wvw                                                            
+                                                                                
+    119270 Robinson  Jacob                                                      
+                                                                                
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    115719 Edwards   Janice                                                     
+                                                                                
+                                                                                
+    119658 Cruz      Sarah                                                      
+                                                                                
+                                                                                
+    129309 Parker    Ashley   AParker107@somewhere.com                          
+WsDGrJK                                                                         
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    124207 Smith     Kyle     KSmith296@somewhere.com                           
+jkAYKft6id                                                                      
+                                                                                
+    117018 Jackson   Marie    MJackson65@somewhere.com                          
+CXBHicKipwsI                                                                    
+                                                                                
+    111946 Barnes    Terry    TBarnes22@somewhere.com                           
+3xCXzjb72fYwXnwOWMku                                                            
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    106555 Cox       Jack     JCox811@somewhere.com                             
+w3gL8Rb                                                                         
+                                                                                
+    119068 Murphy    Laura                                                      
+                                                                                
+                                                                                
+    112385 Collins   Laura                                                      
+                                                                                
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    113664 Lewis     Mildred  MLewis522@somewhere.com                           
+QpKjDLYkGOfdez                                                                  
+                                                                                
+    120321 James     Kenneth  KJames643@somewhere.com                           
+vBB9VQE66UsPEH                                                                  
+                                                                                
+    116325 Rivera    Diana                                                      
+                                                                                
+                                                                                
+
+CUSTOMERID LASTNAME  FIRSTNAM EMAIL                                             
+---------- --------- -------- ---------------------------                       
+PASSWORD                                                                        
+--------------------------------                                                
+    110386 Cook      Vincent                                                    
+                                                                                
+                                                                                
+
+40 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from ShippingDetails Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM ShippingDetails;
+
+SHIPPINGID CUSTOMERID STREET                 CITY              ST ZIP           
+---------- ---------- ---------------------- ----------------- -- ------        
+    110773     110757 2234 Cedar Street      Cape Coral        FL 33904         
+    111849     122103 210 Jackson Street     North Olmsted     OH 44070         
+    120388     129157 3835 Cherry Lane       Indian Trail      NC 28079         
+    101525     123925 6273 Fairway Drive     Hopewell Junction NY 12533         
+    116556     123925 1489 River Street      Deerfield Beach   FL 33442         
+    102161     105268 8439 Pheasant Run      Evansville        IN 47711         
+    127919     109019 1519 Devonshire Drive  North Olmsted     OH 44070         
+    106667     128714 1405 Route 100         Palm Bay          FL 32907         
+    121699     116558 9909 Shady Lane        Manahawkin        NJ 08050         
+    113520     103459 3485 Linden Avenue     Raleigh           NC 27603         
+    105627     117932 6032 Hillside Drive    Ringgold          GA 30736         
+
+SHIPPINGID CUSTOMERID STREET                 CITY              ST ZIP           
+---------- ---------- ---------------------- ----------------- -- ------        
+    104678     131399 2802 Orchard Avenue    Poughkeepsie      NY 12601         
+    125455     125668 201 Madison Avenue     Addison           IL 60101         
+    128572     112728 6045 Orchard Street    Seymour           IN 47274         
+    124313     130287 434 Elm Avenue         Holbrook          NY 11741         
+    113928     105905 8226 Canterbury Drive  Cumming           GA 30040         
+    106047     109675 6695 6th Avenue        Clayton           NC 27520         
+    100320     128088 6730 Andover Court     Nashua            NH 03060         
+    118896     114868 234 Adams Avenue       Cumming           GA 30040         
+    109882     127818 9961 Main Street North Waterford         MI 48329         
+    127615     129309 3750 Park Drive        Smithtown         NY 11787         
+    126085     124207 4745 Virginia Street   Evansville        IN 47711         
+
+SHIPPINGID CUSTOMERID STREET                 CITY              ST ZIP           
+---------- ---------- ---------------------- ----------------- -- ------        
+    117087     117018 1983 Harrison Avenue   Northbrook        IL 60062         
+    104840     111946 6639 Cherry Street     Flint             MI 48504         
+    131488     106555 583 Magnolia Drive     Hicksville        NY 11801         
+    123385     113664 5744 Poplar Street     Youngstown        OH 44512         
+    100522     120321 7942 Bayberry Drive    Jenison           MI 49428         
+
+27 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from CustomerOrders Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM CustomerOrders;
+
+   ORDERID DATEORDER CUSTOMERID  PROMOCODE ORDERSTATUS                          
+---------- --------- ---------- ---------- ----------------                     
+    129843 06-NOV-01     129157            Delivered                            
+    107064 10-JUL-14     122103          9 Being Processed                      
+    103543 19-JUN-02     128088         15 Delivered                            
+    122374 25-OCT-13     112728            Being Processed                      
+    115439 07-MAY-02     124207            Delivered                            
+    127342 21-JUL-10     124207          8 Being Processed                      
+    119896 26-OCT-11     124207          3 Pending Approval                     
+    123752 21-OCT-07     109019            Delivered                            
+    100208 27-JAN-13     131399         11 Delivered                            
+    122279 12-JAN-11     120321            Shipped                              
+    119593 23-JUL-04     128088            Delivered                            
+
+   ORDERID DATEORDER CUSTOMERID  PROMOCODE ORDERSTATUS                          
+---------- --------- ---------- ---------- ----------------                     
+    101500 27-MAR-12     105905            Delivered                            
+    104311 17-JAN-13     129309         16 Shipped                              
+    103207 06-MAY-14     114868         16 Pending Approval                     
+    125106 21-FEB-04     124207          7 Being Processed                      
+    117917 04-AUG-03     111946            Being Processed                      
+    127493 11-JUN-03     103459         13 Pending Approval                     
+    111836 12-JAN-10     127818            Being Processed                      
+    113762 12-OCT-10     111946            Delivered                            
+    113004 11-OCT-07     130287            Shipped                              
+    118517 17-FEB-08     117932          3 Being Processed                      
+    122789 03-NOV-09     130287         13 Being Processed                      
+
+   ORDERID DATEORDER CUSTOMERID  PROMOCODE ORDERSTATUS                          
+---------- --------- ---------- ---------- ----------------                     
+    125705 06-SEP-08     105268            Being Processed                      
+    114110 02-DEC-11     106555            Shipped                              
+    125147 04-NOV-13     109675            Delivered                            
+    114660 21-MAR-05     123925         15 Shipped                              
+    115668 10-JUL-09     117932          9 Pending Approval                     
+    109763 10-APR-01     125668            Being Processed                      
+    132124 17-MAY-10     112728            Pending Approval                     
+    124230 27-MAR-13     128714            Pending Approval                     
+    112777 24-MAY-08     120321         12 Delivered                            
+    131449 18-JUN-06     114868            Pending Approval                     
+    126799 10-MAY-00     124207            Delivered                            
+
+   ORDERID DATEORDER CUSTOMERID  PROMOCODE ORDERSTATUS                          
+---------- --------- ---------- ---------- ----------------                     
+    114898 03-AUG-07     116558          2 Pending Approval                     
+    122116 25-OCT-11     131399          3 Pending Approval                     
+    120401 27-JUL-12     106555            Pending Approval                     
+    129236 16-JUN-11     128714            Delivered                            
+    129328 03-APR-00     116558            Pending Approval                     
+    102898 25-AUG-04     109019            Being Processed                      
+    123167 23-AUG-02     122103          7 Pending Approval                     
+
+40 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from Purchasing Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM Purchasing;
+
+   ALBUMID    ORDERID   QUANTITY                                                
+---------- ---------- ----------                                                
+         9     129843         14                                                
+         1     107064         18                                                
+         1     103543          1                                                
+         8     122374         12                                                
+         7     115439         12                                                
+         4     127342         13                                                
+         9     119896          7                                                
+         9     123752          3                                                
+         5     100208         18                                                
+         3     122279         20                                                
+         9     119593          1                                                
+
+   ALBUMID    ORDERID   QUANTITY                                                
+---------- ---------- ----------                                                
+        10     101500          5                                                
+         7     104311          1                                                
+         8     103207          5                                                
+         5     125106          3                                                
+         7     117917         15                                                
+         3     127493          7                                                
+        10     111836         11                                                
+         3     113762          4                                                
+         7     113004         20                                                
+        10     118517          3                                                
+         8     122789          6                                                
+
+   ALBUMID    ORDERID   QUANTITY                                                
+---------- ---------- ----------                                                
+         3     125705          5                                                
+         8     114110         18                                                
+         3     125147          9                                                
+         1     114660         11                                                
+         9     115668         13                                                
+         4     109763         14                                                
+         4     132124         19                                                
+         2     124230          9                                                
+        10     112777          3                                                
+         3     131449         19                                                
+         9     126799         18                                                
+
+   ALBUMID    ORDERID   QUANTITY                                                
+---------- ---------- ----------                                                
+         7     114898         11                                                
+         8     122116          2                                                
+         4     120401         19                                                
+         4     129236          1                                                
+        10     129328          4                                                
+         7     102898         20                                                
+         9     123167         11                                                
+         7     109763         14                                                
+         2     132124         19                                                
+         7     124230          9                                                
+         1     112777          3                                                
+
+   ALBUMID    ORDERID   QUANTITY                                                
+---------- ---------- ----------                                                
+         5     131449         19                                                
+         7     126799         18                                                
+         4     114898         11                                                
+         3     122116          2                                                
+         2     120401         19                                                
+         1     129236          1                                                
+         1     129328          4                                                
+         6     102898         20                                                
+         7     123167         11                                                
+
+53 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from Tracks Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM Tracks;
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         1          1              525                                          
+Captain Boogaloo                                                                
+                                                                                
+         2          1              586                                          
+Over Rio                                                                        
+                                                                                
+         3          1              122                                          
+The Lone Ranger                                                                 
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         4          1              563                                          
+No American Starship (Looking For The Next World)                               
+                                                                                
+         5          1              505                                          
+Alta Loma Road                                                                  
+                                                                                
+         6          1              581                                          
+Cocabana Havana                                                                 
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         7          1              111                                          
+Constant Forest                                                                 
+                                                                                
+         8          1               69                                          
+Something At The Bottom Of The Sea                                              
+                                                                                
+         9          1              551                                          
+Stepping Stones                                                                 
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        10          1              288                                          
+The Roving Finger                                                               
+                                                                                
+        11          1              151                                          
+Stepping Rocks                                                                  
+                                                                                
+         1          2              292                                          
+Overture                                                                        
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         2          2              240                                          
+The Trans-Love Express                                                          
+                                                                                
+         3          2               64                                          
+Mirage                                                                          
+                                                                                
+         4          2              455                                          
+Enigmatic Ocean (Part I)                                                        
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         5          2              518                                          
+Enigmatic Ocean (Part II)                                                       
+                                                                                
+         6          2               47                                          
+Enigmatic Ocean (Part III)                                                      
+                                                                                
+         7          2              109                                          
+Enigmatic Ocean (Part IV)                                                       
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         8          2              614                                          
+Nostalgic Lady                                                                  
+                                                                                
+         9          2              595                                          
+The Struggle Of The Turtle To The Sea (Part I)                                  
+                                                                                
+        10          2              320                                          
+The Struggle Of The Turtle To The Sea (Part II)                                 
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        11          2              282                                          
+The Struggle Of The Turtle To The Sea (Part III)                                
+                                                                                
+         1          3              534                                          
+Paradize                                                                        
+                                                                                
+         2          3              439                                          
+Electrastar                                                                     
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         3          3              534                                          
+Punker                                                                          
+                                                                                
+         4          3              277                                          
+Mao boy                                                                         
+                                                                                
+         5          3              411                                          
+J`ai demand???? ???? la lune                                                    
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         6          3               95                                          
+Dunkerque                                                                       
+                                                                                
+         7          3              126                                          
+Like a monster                                                                  
+                                                                                
+         8          3              415                                          
+Le grand secret                                                                 
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         9          3              240                                          
+La nuit des f????es                                                             
+                                                                                
+        10          3              393                                          
+Marilyn                                                                         
+                                                                                
+        11          3              369                                          
+La manoir                                                                       
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        12          3              581                                          
+Popstitute                                                                      
+                                                                                
+        13          3              142                                          
+Dark                                                                            
+                                                                                
+        14          3              583                                          
+Comateen 1                                                                      
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        15          3              202                                          
+Un singe en hiver                                                               
+                                                                                
+         1          4              587                                          
+(I Love You) For Sentimental Reasons                                            
+                                                                                
+         2          4              547                                          
+The Thrill Is Gone                                                              
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         3          4              551                                          
+I`ll Survive                                                                    
+                                                                                
+         1          5               52                                          
+Wonderful Crazy Night                                                           
+                                                                                
+         2          5              216                                          
+In The Name Of You                                                              
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         3          5              148                                          
+Claw Hammer                                                                     
+                                                                                
+         4          5              151                                          
+Blue Wonderful                                                                  
+                                                                                
+         5          5              213                                          
+I`ve Got 2 Wings                                                                
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         6          5              323                                          
+A Good Heart                                                                    
+                                                                                
+         7          5              195                                          
+Looking Up                                                                      
+                                                                                
+         8          5              400                                          
+Guilty Pleasure                                                                 
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         9          5              546                                          
+Tambourine                                                                      
+                                                                                
+        10          5              309                                          
+The Open Chord                                                                  
+                                                                                
+        11          5              225                                          
+Free And Easy                                                                   
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        12          5              321                                          
+England And America                                                             
+                                                                                
+        13          5              149                                          
+Looking Up (Live)                                                               
+                                                                                
+        14          5              362                                          
+Wonderful Crazy Night (Live)                                                    
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         1          6              251                                          
+Mortal Grinder                                                                  
+                                                                                
+         2          6               86                                          
+Volunteers Of Victory                                                           
+                                                                                
+         3          6              460                                          
+The Multicunts Misery                                                           
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         4          6              199                                          
+Terrornoise                                                                     
+                                                                                
+         5          6              523                                          
+Total Warsphere                                                                 
+                                                                                
+         6          6              462                                          
+Disciples Of The Black Sun                                                      
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         7          6              442                                          
+Hatestrike                                                                      
+                                                                                
+         8          6              234                                          
+Intolerance Is Right                                                            
+                                                                                
+         9          6              217                                          
+Crush, Kill and Destroy The Antifa Trannies                                     
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        10          6               54                                          
+Scoriam Mortis                                                                  
+                                                                                
+        11          6              560                                          
+Hollyjude Shit                                                                  
+                                                                                
+        12          6              434                                          
+Indominus                                                                       
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        13          6              374                                          
+Unrivalled                                                                      
+                                                                                
+        14          6              260                                          
+Guts For The Wardemons                                                          
+                                                                                
+        15          6               68                                          
+Fire On Diaspora Pest                                                           
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        16          6              225                                          
+Strategema Letalis                                                              
+                                                                                
+        17          6              497                                          
+Aggressive Reaction                                                             
+                                                                                
+        18          6              128                                          
+No Abolition                                                                    
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        19          6              499                                          
+Repulsive Trash                                                                 
+                                                                                
+        20          6              197                                          
+Coprophagic Wiesentales                                                         
+                                                                                
+        21          6              434                                          
+Protocol of Extinction                                                          
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        22          6              610                                          
+V????mito At????mico                                                            
+                                                                                
+         1          7              142                                          
+World In Harmony                                                                
+                                                                                
+         2          7              423                                          
+Oh Well                                                                         
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         3          7              338                                          
+Rattlesnake Shake                                                               
+                                                                                
+         4          7               73                                          
+Stranger Blues                                                                  
+                                                                                
+         5          7              554                                          
+Red Hot Mama                                                                    
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         6          7              317                                          
+Teenage Darling                                                                 
+                                                                                
+         7          7              382                                          
+Keep A-Knocking                                                                 
+                                                                                
+         8          7              237                                          
+Jenny Jenny                                                                     
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         9          7              268                                          
+Encore                                                                          
+                                                                                
+         1          8              290                                          
+Sinfonie Nr. 6 A-Dur                                                            
+                                                                                
+         2          8              260                                          
+Majestoso                                                                       
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         3          8              286                                          
+Adagio. Sehr Feierlich                                                          
+                                                                                
+         4          8              321                                          
+Scherzo. Nicht Schnell. Trio                                                    
+                                                                                
+         5          8               73                                          
+Finale. Bewegt, Doch Nicht Zu Schnell                                           
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         1          9              260                                          
+Come Together                                                                   
+                                                                                
+         2          9              183                                          
+Something                                                                       
+                                                                                
+         3          9              207                                          
+Maxwell`s Silver Hammer                                                         
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         4          9              206                                          
+Oh! Darling                                                                     
+                                                                                
+         5          9              171                                          
+Octopus`s Garden                                                                
+                                                                                
+         6          9              467                                          
+I Want You (She`s So Heavy)                                                     
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         7          9              185                                          
+Here Comes The Sun                                                              
+                                                                                
+         8          9              165                                          
+Because                                                                         
+                                                                                
+         9          9              242                                          
+You Never Give Me Your Money                                                    
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        10          9              146                                          
+Sun King                                                                        
+                                                                                
+        11          9               66                                          
+Mean Mr. Mustard                                                                
+                                                                                
+         1         10              305                                          
+Intro                                                                           
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         2         10              540                                          
+Kwanzanianz                                                                     
+                                                                                
+         3         10               57                                          
+Inahouse                                                                        
+                                                                                
+         4         10              247                                          
+Interlude                                                                       
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         5         10              446                                          
+Beyond Belief                                                                   
+                                                                                
+         6         10              362                                          
+Interlude                                                                       
+                                                                                
+         7         10              378                                          
+Msafiri                                                                         
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+         8         10              611                                          
+Friction                                                                        
+                                                                                
+         9         10              419                                          
+Interlude                                                                       
+                                                                                
+        10         10              160                                          
+Man To Man                                                                      
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        11         10              419                                          
+Check Navyoflow                                                                 
+                                                                                
+        12         10              436                                          
+Interlude                                                                       
+                                                                                
+        13         10               81                                          
+Beyond Belief (Remix)                                                           
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        14         10              208                                          
+Acha                                                                            
+                                                                                
+        15         10              352                                          
+Interlude                                                                       
+                                                                                
+        16         10              442                                          
+Kamari                                                                          
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        17         10              418                                          
+Yippy Yapping                                                                   
+                                                                                
+        18         10              602                                          
+Kivingine                                                                       
+                                                                                
+        19         10              359                                          
+Interlude                                                                       
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        20         10              525                                          
+Nakuja                                                                          
+                                                                                
+        21         10              451                                          
+Runtingz                                                                        
+                                                                                
+        22         10              618                                          
+So Why                                                                          
+                                                                                
+
+      TNUM    ALBUMID DURATION_SECONDS                                          
+---------- ---------- ----------------                                          
+TRACK_NAME                                                                      
+--------------------------------------------------                              
+        23         10              103                                          
+Outtro                                                                          
+                                                                                
+        24         10              192                                          
+Beyond Belief (Posse Remix)                                                     
+                                                                                
+
+125 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from Albums Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM Albums;
+
+   ALBUMID ALBUMTITLE                                                           
+---------- ---------------------------------------------                        
+RECORDLABEL                 QUANTITYONHAND RELEASEYEAR      PRICE               
+--------------------------- -------------- ----------- ----------               
+         1 Quantum Jump                                                         
+Apple Records                          397        1976       2.11               
+                                                                                
+         2 Enigmatic Ocean                                                      
+Atlantic                               271        1977       6.84               
+                                                                                
+         3 Paradize                                                             
+Indochine Records                      100        2016       6.93               
+                                                                                
+
+   ALBUMID ALBUMTITLE                                                           
+---------- ---------------------------------------------                        
+RECORDLABEL                 QUANTITYONHAND RELEASEYEAR      PRICE               
+--------------------------- -------------- ----------- ----------               
+         4 B.B. King Brought to You By Rockport                                 
+Universal Music Enterprises              1        1998       2.09               
+                                                                                
+         5 Wonderful Crazy Night                                                
+Island Records                          11        2016      10.35               
+                                                                                
+         6 Mortal Grinder                                                       
+Behold Barbarity                       911        2016       8.65               
+                                                                                
+
+   ALBUMID ALBUMTITLE                                                           
+---------- ---------------------------------------------                        
+RECORDLABEL                 QUANTITYONHAND RELEASEYEAR      PRICE               
+--------------------------- -------------- ----------- ----------               
+         7 Live At The Boston Tea Party Part Two                                
+Snapper Music Inc.                      97        1998       3.62               
+                                                                                
+         8 Sinfonieorchester Des Norddeutschen Rundfunks                        
+RCA Victor Red Seal                    463        1989       3.81               
+                                                                                
+         9 Abbey Road                                                           
+Apple Records                          657        1969       9.98               
+                                                                                
+
+   ALBUMID ALBUMTITLE                                                           
+---------- ---------------------------------------------                        
+RECORDLABEL                 QUANTITYONHAND RELEASEYEAR      PRICE               
+--------------------------- -------------- ----------- ----------               
+        10 Kwanza Unit                                                          
+Madunia Foundation                     121        2000       3.24               
+                                                                                
+
+10 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from Appears_In Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM Appears_In;
+
+   ALBUMID   ARTISTID ROLE                                                      
+---------- ---------- --------------------------------------------              
+         1        999 Recording Artist, Vocals, Bass Guitar                     
+         1        998 Composer                                                  
+         1        997 Artwork                                                   
+         1        996 Drums/Percussion                                          
+         1        995 Producer                                                  
+         2        994 Conductor, Composer, Recording Artist, Bells              
+         2        993 Clavinet                                                  
+         2        992 Drums                                                     
+         2        991 Electric Bass                                             
+         3        990 Recording Artist                                          
+         4        989 Recording Artist                                          
+
+   ALBUMID   ARTISTID ROLE                                                      
+---------- ---------- --------------------------------------------              
+         5        986 Harmony Vocals, Drums                                     
+         5        987 French Horn                                               
+         5        985 Keyboards                                                 
+         5        988 Recording Artist, Lead Vocals                             
+         6        984 Lead Vocals, Recording Artist                             
+         7        983 Lead Vocals, Recording Artist                             
+         8        982 Composer, Recording Artist                                
+         8        981 Editor                                                    
+         9        980 Recording Artist                                          
+        10        979 Lead Vocals, Recording Artist                             
+        10        978 Co-Producer                                               
+
+   ALBUMID   ARTISTID ROLE                                                      
+---------- ---------- --------------------------------------------              
+        10        977 Producer                                                  
+
+23 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Select all from Artist Table
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM Artists;
+
+  ARTISTID ARTISTNAME       NAT                                                 
+---------- ---------------- ---                                                 
+       999 John G. Perry    USA                                                 
+       998 Quantum Jump     USA                                                 
+       997 Trevor Smith     USA                                                 
+       996 Trevor Morais    USA                                                 
+       995 Rupert Hine      USA                                                 
+       994 Jean-Luc Ponty   USA                                                 
+       993 Allan Zavod      USA                                                 
+       992 Steve Smith      USA                                                 
+       991 Ralphe Armstrong USA                                                 
+       990 Indochine        USA                                                 
+       989 B.B. King        USA                                                 
+
+  ARTISTID ARTISTNAME       NAT                                                 
+---------- ---------------- ---                                                 
+       988 Elton John       USA                                                 
+       987 Dylan Hart       USA                                                 
+       986 Nigel Olsson     USA                                                 
+       985 Kim Bullard      USA                                                 
+       984 Seges Findere    USA                                                 
+       983 Fleetwood Mac    USA                                                 
+       982 Buckner          USA                                                 
+       981 Sabine Kaufmann  USA                                                 
+       980 The Beatles      UK                                                  
+       979 Kwanza Unit      USA                                                 
+       978 Master Jay       USA                                                 
+
+  ARTISTID ARTISTNAME       NAT                                                 
+---------- ---------------- ---                                                 
+       977 Rhymson          USA                                                 
+
+23 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q1-A join involving at least four relations.
+SQL> --Select the first AND last names of all customers who bought an album by
+SQL> --The Beatles
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT C.FirstName, C.LastName
+  2  FROM Customer C, CustomerOrders O, Purchasing P, Albums A, Appears_In I, Artists Ar
+  3  WHERE C.CustomerID = O.CustomerID AND
+  4  	   O.OrderID = P.OrderID AND
+  5  	   P.AlbumID = I.AlbumID AND
+  6  	   I.ArtistID = Ar.ArtistID AND
+  7  	   Ar.ArtistName = 'The Beatles'
+  8  ORDER BY C.LastName;
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Jonathan Bell                                                                   
+Douglas  James                                                                  
+Donna    Morales                                                                
+Amanda   Ortiz                                                                  
+Kimberly Ross                                                                   
+Kyle     Smith                                                                  
+
+6 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q2-A self-join.
+SQL> --Find pairs names of all customers who have the same first name
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT C1.FirstName, C1.LastName, C2.FirstName, C2.LastName
+  2  FROM Customer C1, Customer C2
+  3  WHERE C1.FirstName = C2.FirstName AND
+  4  	   C1.CustomerID <> C2.CustomerID AND
+  5  	   C1.LastName < C2.LastName
+  6  ORDER BY C1.LastName;
+
+FIRSTNAM LASTNAME  FIRSTNAM LASTNAME                                            
+-------- --------- -------- ---------                                           
+Tyler    Allen     Tyler    Bell                                                
+Laura    Collins   Laura    Murphy                                              
+Jack     Cox       Jack     Diaz                                                
+Karen    Green     Karen    Williams                                            
+Virginia Green     Virginia Nguyen                                              
+
+5 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q3-UNION
+SQL> --Find the first AND last names of all customers who have either bought Albums
+SQL> --using promocodes, or bought old albums (released before 2000)
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT C.FirstName, C.LastName
+  2  FROM Customer C, CustomerOrders O
+  3  WHERE C.CustomerID = O.CustomerID AND
+  4  	   O.Promocode IS NOT NULL
+  5  UNION
+  6  SELECT DISTINCT C.FirstName, C.LastName
+  7  FROM Customer C, CustomerOrders O, Purchasing P, Albums A
+  8  WHERE C.CustomerID = O.CustomerID AND
+  9  	   O.OrderID = P.OrderID AND
+ 10  	   P.AlbumID = A.AlbumID AND
+ 11  	   A.ReleaseYear < 2000;
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Adam     Lee                                                                    
+Amanda   Ortiz                                                                  
+Ashley   Parker                                                                 
+Bruce    Rodriguez                                                              
+Donna    Morales                                                                
+Douglas  James                                                                  
+Howard   Perez                                                                  
+Jack     Cox                                                                    
+Jonathan Bell                                                                   
+Judith   Wood                                                                   
+Kenneth  James                                                                  
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Kimberly Ross                                                                   
+Kyle     Smith                                                                  
+Nicole   Long                                                                   
+Roy      Bennett                                                                
+Terry    Barnes                                                                 
+Tyler    Allen                                                                  
+Virginia Green                                                                  
+Wayne    Diaz                                                                   
+
+19 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> -- Q4-INTERSECT
+SQL> --Find the first AND last names of all customers who have	bought new albums
+SQL> --(released after 2000) using promocodes, and who make their purchases at the
+SQL> --store (which means they don't have e-mail addresses stored with the store)
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT C.FirstName, C.LastName
+  2  FROM Customer C, CustomerOrders O, Purchasing P, Albums A
+  3  WHERE C.CustomerID = O.CustomerID AND
+  4  	   O.Promocode IS NOT NULL AND
+  5  	   O.OrderID = P.OrderID AND
+  6  	   P.AlbumID = A.AlbumID AND
+  7  	   A.ReleaseYear > 2000
+  8  INTERSECT
+  9  SELECT DISTINCT C.FirstName, C.LastName
+ 10  FROM Customer C
+ 11  WHERE C.Email IS NOT NULL;
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Kyle     Smith                                                                  
+Virginia Green                                                                  
+Wayne    Diaz                                                                   
+
+3 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q5-MINUS
+SQL> --Find the first and last names of all customers who have bought new Albums
+SQL> --(released after 2000), but have not used promocodes
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT C.FirstName, C.LastName
+  2  FROM Customer C, CustomerOrders O, Purchasing P, Albums A
+  3  WHERE C.CustomerID = O.CustomerID AND
+  4  	   O.OrderID = P.OrderID AND
+  5  	   P.AlbumID = A.AlbumID AND
+  6  	   A.ReleaseYear > 2000
+  7  MINUS
+  8  SELECT DISTINCT C.FirstName, C.LastName
+  9  FROM Customer C, CustomerOrders O
+ 10  WHERE C.CustomerID = O.CustomerID AND
+ 11  	   O.Promocode IS NULL;
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Virginia Green                                                                  
+Wayne    Diaz                                                                   
+
+2 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q6-SUM
+SQL> --Find the album title and recording artist for the three longest albums
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT *
+  2  FROM (SELECT A.AlbumTitle, Ar.ArtistName, SUM(T.Duration_Seconds) "Duration"
+  3  	   FROM Albums A, Appears_In I, Artists Ar, Tracks T
+  4  	   WHERE A.AlbumID = I.AlbumID AND
+  5  		 I.Role LIKE '%Recording Artist%' AND
+  6  		 I.ArtistID = Ar.ArtistID AND
+  7  		 A.AlbumID = T.AlbumID
+  8  	   GROUP BY A.AlbumTitle, Ar.ArtistName
+  9  	   ORDER BY SUM(T.Duration_Seconds) DESC)
+ 10  WHERE ROWNUM < 4;
+
+ALBUMTITLE                                    ARTISTNAME         Duration       
+--------------------------------------------- ---------------- ----------       
+Kwanza Unit                                   Kwanza Unit            8731       
+Mortal Grinder                                Seges Findere          7214       
+Paradize                                      Indochine              5341       
+
+3 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q7-AVG
+SQL> --Find all artist's whose average length of song is at least 3 minutes AND 30
+SQL> --seconds across an album(individual albums)
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT B.ArtistName, AVG(T.Duration_Seconds) AS "Avg Duration"
+  2  FROM Albums A, Tracks T, Artists B, Appears_in C
+  3  WHERE T.AlbumID = A.AlbumID AND
+  4  	   A.AlbumID=C.AlbumID AND
+  5  	   C.ArtistID=B.ArtistID
+  6  GROUP BY B.ArtistName
+  7  HAVING AVG(T.Duration_Seconds) > 210
+  8  ORDER BY B.ArtistName;
+
+ARTISTNAME       Avg Duration                                                   
+---------------- ------------                                                   
+Allan Zavod        321.454545                                                   
+B.B. King          561.666667                                                   
+Buckner                   246                                                   
+Dylan Hart         257.857143                                                   
+Elton John         257.857143                                                   
+Fleetwood Mac      303.777778                                                   
+Indochine          356.066667                                                   
+Jean-Luc Ponty     321.454545                                                   
+John G. Perry      368.363636                                                   
+Kim Bullard        257.857143                                                   
+Kwanza Unit        363.791667                                                   
+
+ARTISTNAME       Avg Duration                                                   
+---------------- ------------                                                   
+Master Jay         363.791667                                                   
+Nigel Olsson       257.857143                                                   
+Quantum Jump       368.363636                                                   
+Ralphe Armstrong   321.454545                                                   
+Rhymson            363.791667                                                   
+Rupert Hine        368.363636                                                   
+Sabine Kaufmann           246                                                   
+Seges Findere      327.909091                                                   
+Steve Smith        321.454545                                                   
+Trevor Morais      368.363636                                                   
+Trevor Smith       368.363636                                                   
+
+22 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q8-MAX
+SQL> --Find all albums whose longest song is under 10 minutes long
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT A.AlbumTitle
+  2  FROM Albums A, Tracks T
+  3  WHERE T.AlbumID = A.AlbumID
+  4  GROUP BY A.AlbumTitle
+  5  HAVING MAX(T.Duration_Seconds) < 600
+  6  ORDER BY A.AlbumTitle;
+
+ALBUMTITLE                                                                      
+---------------------------------------------                                   
+Abbey Road                                                                      
+B.B. King Brought to You By Rockport                                            
+Live At The Boston Tea Party Part Two                                           
+Paradize                                                                        
+Quantum Jump                                                                    
+Sinfonieorchester Des Norddeutschen Rundfunks                                   
+Wonderful Crazy Night                                                           
+
+7 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q9-MIN.
+SQL> --Find all albums whose shortest song that is less than 3 minutes long
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT A.AlbumTitle
+  2  FROM Albums A, Tracks T
+  3  WHERE T.AlbumID = A.AlbumID
+  4  GROUP BY A.AlbumTitle
+  5  HAVING MIN(T.Duration_Seconds) < 60
+  6  ORDER BY A.AlbumTitle;
+
+ALBUMTITLE                                                                      
+---------------------------------------------                                   
+Enigmatic Ocean                                                                 
+Kwanza Unit                                                                     
+Mortal Grinder                                                                  
+Wonderful Crazy Night                                                           
+
+4 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --GROUP BY, HAVING, AND ORDER BY, all appearing in the same query
+SQL> -------------------------------------------------------------------------------
+SQL> --(see previous query - Q9)
+SQL> -------------------------------------------------------------------------------
+SQL> --Q10-A correlated subquery.
+SQL> --Find all customers with an email address who haven't ordered online.
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT C.FirstName, C.LastName
+  2  FROM Customer C
+  3  WHERE C.email IS NOT NULL AND
+  4  	   NOT EXISTS (SELECT *
+  5  		       FROM CustomerOrders D
+  6  					       WHERE C.CustomerID=D.CustomerID);
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Marie    Jackson                                                                
+Tyler    Bell                                                                   
+Eugene   Cruz                                                                   
+Karen    Green                                                                  
+Mildred  Lewis                                                                  
+
+5 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q11-A non-correlated subquery.
+SQL> --Find all customers whose orders of "Quantum Jump" have been delivered
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT DISTINCT C.FirstName, C.LastName
+  2  FROM Customer C, CustomerOrders D, Purchasing P, Albums F
+  3  WHERE C.CustomerID=D.CustomerID AND
+  4  	   P.OrderID=D.OrderID AND
+  5  	   P.AlbumID=F.AlbumID AND
+  6  	   F.AlbumTitle='Quantum Jump' AND
+  7  	   D.CustomerID IN (SELECT CustomerID
+  8  			    FROM CustomerOrders
+  9  						    WHERE OrderStatus='Delivered');
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Douglas  James                                                                  
+Kenneth  James                                                                  
+Nicole   Long                                                                   
+
+3 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q12-A relational DIVISION query.
+SQL> --Find all customers who ordered every album by 'Apple Records' (Record Label)
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT C.FirstName, C.LastName
+  2  FROM Customer C
+  3  WHERE NOT EXISTS((SELECT  B.AlbumID
+  4  			FROM Albums B
+  5  			WHERE B.RecordLabel = 'Apple Records')
+  6  		       MINUS
+  7  		       (SELECT	D.AlbumID
+  8  			FROM	CustomerOrders R, Purchasing B, Albums D
+  9  			WHERE	R.OrderID=B.OrderID AND
+ 10  						  R.CustomerID = C.CustomerID AND
+ 11  				B.AlbumID = D.AlbumID AND
+ 12  				D.RecordLabel = 'Apple Records'));
+
+FIRSTNAM LASTNAME                                                               
+-------- ---------                                                              
+Amanda   Ortiz                                                                  
+Douglas  James                                                                  
+
+2 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Q13-An outer join query.
+SQL> --Find First and Last name of every customer whose last name is less than 'j'.
+SQL> --Also include their shipping address if they provided one.
+SQL> -------------------------------------------------------------------------------
+SQL> SELECT C.FirstName, C.LastName, S.Street, S.City, S.Zip
+  2  FROM Customer C LEFT OUTER JOIN ShippingDetails S ON S.CustomerID=C.CustomerID
+  3  WHERE C.LastName<'J';
+
+FIRSTNAM LASTNAME  STREET                 CITY              ZIP                 
+-------- --------- ---------------------- ----------------- ------              
+Tyler    Bell      2234 Cedar Street      Cape Coral        33904               
+Frank    Adams     8439 Pheasant Run      Evansville        47711               
+Roy      Bennett   9909 Shady Lane        Manahawkin        08050               
+Virginia Green     3485 Linden Avenue     Raleigh           27603               
+Jonathan Bell      6032 Hillside Drive    Ringgold          30736               
+Wayne    Diaz      2802 Orchard Avenue    Poughkeepsie      12601               
+Tyler    Allen     201 Madison Avenue     Addison           60101               
+Jennifer Gomez     8226 Canterbury Drive  Cumming           30040               
+Nathan   Campbell  6695 6th Avenue        Clayton           27520               
+Terry    Barnes    6639 Cherry Street     Flint             48504               
+Jack     Cox       583 Magnolia Drive     Hicksville        11801               
+
+FIRSTNAM LASTNAME  STREET                 CITY              ZIP                 
+-------- --------- ---------------------- ----------------- ------              
+Jack     Diaz                                                                   
+Karen    Green                                                                  
+Mark     Hill                                                                   
+Vincent  Cook                                                                   
+Janice   Edwards                                                                
+Sarah    Cruz                                                                   
+Laura    Collins                                                                
+Eugene   Cruz                                                                   
+
+19 rows selected.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --
+SQL> --Testing of integrity constraints
+SQL> --
+SQL> -------------------------------------------------------------------------------
+SQL> --Testing: <CustomerPrimaryKey>
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Customer values(109931, 'First', 'Last', '', '');
+INSERT INTO Customer values(109931, 'First', 'Last', '', '')
+*
+ERROR at line 1:
+ORA-00001: unique constraint (WANYEF.CUSTOMERPRIMEKEY) violated 
+
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Testing: <TrackForeignKey>
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Tracks VALUES(24,20,291,'Testing');
+
+1 row created.
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Testing: <TrackDurCheck>
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Tracks VALUES(24,10,0,'Testing');
+INSERT INTO Tracks VALUES(24,10,0,'Testing')
+*
+ERROR at line 1:
+ORA-02290: check constraint (WANYEF.TRACKDURCHECK) violated 
+
+
+SQL> -------------------------------------------------------------------------------
+SQL> --Testing: <Albums_price>
+SQL> -------------------------------------------------------------------------------
+SQL> INSERT INTO Albums VALUES(11,'Title','Label',101,1969,11.00);
+INSERT INTO Albums VALUES(11,'Title','Label',101,1969,11.00)
+*
+ERROR at line 1:
+ORA-02290: check constraint (WANYEF.ALBUMS_PRICE) violated 
+
+
+SQL> -------------------------------------------------------------------------------
+SQL> COMMIT;
+COMMIT
+*
+ERROR at line 1:
+ORA-02091: transaction rolled back 
+ORA-02291: integrity constraint (WANYEF.TRACKFOREIGNKEY) violated - parent key 
+not found 
+
+
+SQL> SPOOL OFF;
